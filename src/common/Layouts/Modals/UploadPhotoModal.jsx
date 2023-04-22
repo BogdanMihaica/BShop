@@ -9,7 +9,7 @@ const getBase64 = (file) =>
     reader.onload = () => resolve(reader.result);
     reader.onerror = (error) => reject(error);
   });
-const UploadProdPhotoModal = ({ upload }) => {
+const UploadProdPhotoModal = ({ uploaded, productID }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
   const [previewTitle, setPreviewTitle] = useState("");
@@ -44,10 +44,17 @@ const UploadProdPhotoModal = ({ upload }) => {
       </div>
     </div>
   );
+  useEffect(() => {
+    //SIGNAL RECIEVED FROM FORM
+    if (uploaded === true) {
+      console.log("Signal recieved");
+      console.log("Product ID is " + productID);
+    } else console.log("Signal NOT recieved");
+  }, [uploaded]);
   return (
     <>
       <Upload
-        action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+        method="get"
         listType="picture-card"
         fileList={fileList}
         onPreview={handlePreview}
