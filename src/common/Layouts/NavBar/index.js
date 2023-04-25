@@ -106,15 +106,9 @@ const ItemContainer = styled.div`
 
 export default function NavBar() {
   const navigate = useNavigate();
-  return (
-    <Container>
-      <LogoContaner>
-        <a href="/">
-          <img src={LogoPNG} alt="logo" />
-        </a>
-      </LogoContaner>
-      <ItemContainer>
-        {MENU_ITEMS.map(renderRoutes)}
+  const SignOut = () => {
+    if (localStorage.getItem("isLoggedIn") === "true") {
+      return (
         <Click
           href=""
           onClick={() => {
@@ -125,6 +119,19 @@ export default function NavBar() {
         >
           <li>Sign out</li>
         </Click>
+      );
+    }
+  };
+  return (
+    <Container>
+      <LogoContaner>
+        <a href="/">
+          <img src={LogoPNG} alt="logo" />
+        </a>
+      </LogoContaner>
+      <ItemContainer>
+        {MENU_ITEMS.map(renderRoutes)}
+        {SignOut()}
       </ItemContainer>
     </Container>
   );

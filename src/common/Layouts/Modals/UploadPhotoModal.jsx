@@ -1,7 +1,9 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Modal, Upload } from "antd";
+import { ref, uploadBytes } from "firebase/storage";
 import { useEffect, useState } from "react";
 import { v4 as uuid } from "uuid";
+import { storage } from "../../../config/firebase";
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -28,9 +30,6 @@ const UploadProdPhotoModal = ({ uploaded, productID }) => {
   const handleChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
   };
-  useEffect(() => {
-    fileList.map((item) => console.log(item.name));
-  }, [fileList]);
 
   const uploadButton = (
     <div>
@@ -45,10 +44,30 @@ const UploadProdPhotoModal = ({ uploaded, productID }) => {
     </div>
   );
   useEffect(() => {
-    //SIGNAL RECIEVED FROM FORM
+    //SIGNAL RECEIVED FROM FORM
     if (uploaded === true) {
-      console.log("Signal recieved");
-      console.log("Product ID is " + productID);
+      let advance = true;
+
+      fileList.forEach((image) => {
+        if (
+          !(
+            image.originFileObj.type == "image/png" ||
+            image.originFileObj.type == "image/jpg" ||
+            image.originFileObj.type == "image/jpeg"
+          )
+        )
+          advance = false;
+      });
+      if (advance) {
+        fileList.forEach((image) => {
+          const imageName = image.originFileObj.name + uuid();
+          const imageRef = ref(storage, `images/${productID}/${imageName}`);
+          uploadBytes(imageRef, image.originFileObj, {
+            contentType: `${image.originFileObj.type}`,
+            firebaseStorageDownloadTokens: uuid(),
+          }).then(() => console.log("SUCCESS"));
+        });
+      }
     } else console.log("Signal NOT recieved");
   }, [uploaded]);
   return (

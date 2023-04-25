@@ -1,11 +1,13 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import NavBar from "../../../common/Layouts/NavBar";
 import { ITEMS } from "../../../common/Componets/Categories";
 import UploadProdPhotoModal from "../../../common/Layouts/Modals/UploadPhotoModal";
 import { auth, db } from "../../../config/firebase";
-import { addDoc, collection } from "firebase/firestore";
+import { addDoc, collection, getDocs } from "firebase/firestore";
 import { v4 as uuid } from "uuid";
+import { useNavigate } from "react-router-dom";
+import { DataContext } from "../../../services/dataContext";
 const FormBlock = styled.div`
   display: flex;
   flex-direction: column;
@@ -172,7 +174,8 @@ const Error = styled.h4`
   margin-left: 2rem;
 `;
 export default function AddForm() {
-  const uploaded = false;
+  const [uploadStatus, setUploadStatus] = useState(false);
+  const [images, setImages] = useState([]);
   const [err, setErr] = useState("");
   const [category, setCategory] = useState("");
   const [title, setTitle] = useState("");
@@ -183,12 +186,15 @@ export default function AddForm() {
   const [dwv, setDwv] = useState(false);
   const [county, setCounty] = useState("");
   const [city, setCity] = useState("");
-  let productID = "";
-
+  const [productID, setProductID] = useState("");
+  const navigate = useNavigate();
   const productCollection = collection(db, "products");
-  const userCollection = collection(db, "users");
+  const { userList } = useContext(DataContext);
+  console.log(userList);
+  const [userDocs, setUserDocs] = useState([]);
 
   const missingSomething = () => {
+    console.log(userList);
     return (
       category === "" ||
       title === "" ||
@@ -200,9 +206,12 @@ export default function AddForm() {
   };
   async function handleUpload() {
     if (!missingSomething()) {
-      productID = uuid();
+      await setProductID(uuid());
+      await console.log(productID);
+      await setUploadStatus(true);
+
       try {
-        await addDoc(productCollection, {
+        const currentDoc = await addDoc(productCollection, {
           county,
           category,
           city,
@@ -214,7 +223,9 @@ export default function AddForm() {
           title,
           description,
           price,
+          images,
         });
+
         await setErr("");
         await alert("Success");
       } catch (err) {
@@ -225,10 +236,15 @@ export default function AddForm() {
     }
   }
   const renderOptions = ({ key, title, icon }) => {
-    return <option value={title}>{title}</option>;
+    return (
+      <option value={title} key={key}>
+        {title}
+      </option>
+    );
   };
+
   return (
-    <>
+    <React.StrictMode>
       <NavBar />
 
       <Container>
@@ -240,6 +256,7 @@ export default function AddForm() {
             onChange={(e) => {
               setTitle(e.target.value);
             }}
+            key="title"
           />
           <DescribeInput>Category</DescribeInput>
           <Select
@@ -247,18 +264,21 @@ export default function AddForm() {
             onChange={(e) => {
               setCategory(e.target.value);
             }}
+            key="category"
           >
             {ITEMS.map(renderOptions)}
           </Select>
           <DescribeInput>Location</DescribeInput>
           <LineContainer>
             <SmallInput
+              key="county"
               placeholder="County"
               onChange={(e) => {
                 setCounty(e.target.value);
               }}
             />
             <SmallInput
+              key="city"
               placeholder="City"
               onChange={(e) => {
                 setCity(e.target.value);
@@ -267,6 +287,7 @@ export default function AddForm() {
           </LineContainer>
           <DescribeInput>Description</DescribeInput>
           <TextArea
+            key="description"
             placeholder="Enter a very suggestive description. Keep it below 500 characters."
             onChange={(e) => {
               setDescription(e.target.value);
@@ -275,11 +296,14 @@ export default function AddForm() {
           ></TextArea>
         </FormBlock>
         <FormBlock>
-          <DescribeInput>Upload Images {"(max. 8)"}</DescribeInput>
+          <DescribeInput>
+            Upload images of your product {"(max. 8)"}
+          </DescribeInput>
           <PhotoContainer>
             <UploadProdPhotoModal
               style={{ marginLeft: 20 }}
-              uploaded={uploaded}
+              uploaded={uploadStatus}
+              productID={productID}
             />
           </PhotoContainer>
         </FormBlock>
@@ -287,6 +311,7 @@ export default function AddForm() {
           <DescribeInput>Price</DescribeInput>
           <LineContainer>
             <SmallInput
+              key="price"
               placeholder="Enter a price"
               onChange={(e) => {
                 setPrice(e.target.value);
@@ -294,6 +319,7 @@ export default function AddForm() {
               maxLength="7"
             />
             <ExchangeType
+              key="exchange"
               onChange={(e) => {
                 setCurrency(e.target.value);
               }}
@@ -306,6 +332,7 @@ export default function AddForm() {
           </LineContainer>
           <CheckContainer>
             <CheckInput
+              key="negotiable"
               type="checkbox"
               onChange={(e) => {
                 setNego(e.target.checked);
@@ -316,6 +343,7 @@ export default function AddForm() {
           </CheckContainer>
           <CheckContainer>
             <CheckInput
+              key="dwv"
               type="checkbox"
               onChange={(e) => {
                 setDwv(e.target.checked);
@@ -328,6 +356,6 @@ export default function AddForm() {
           <Error>{err}</Error>
         </FormBlock>
       </Container>
-    </>
+    </React.StrictMode>
   );
 }
