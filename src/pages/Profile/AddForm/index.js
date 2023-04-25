@@ -4,7 +4,7 @@ import NavBar from "../../../common/Layouts/NavBar";
 import { ITEMS } from "../../../common/Componets/Categories";
 import UploadProdPhotoModal from "../../../common/Layouts/Modals/UploadPhotoModal";
 import { auth, db } from "../../../config/firebase";
-import { addDoc, collection, getDocs } from "firebase/firestore";
+import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { v4 as uuid } from "uuid";
 import { useNavigate } from "react-router-dom";
 import { DataContext } from "../../../services/dataContext";
@@ -186,15 +186,14 @@ export default function AddForm() {
   const [dwv, setDwv] = useState(false);
   const [county, setCounty] = useState("");
   const [city, setCity] = useState("");
-  const [productID, setProductID] = useState("");
+  const [productID, setProductID] = useState(uuid());
   const navigate = useNavigate();
   const productCollection = collection(db, "products");
-  const { userList } = useContext(DataContext);
-  console.log(userList);
+  const { currentUserDoc } = useContext(DataContext);
+
   const [userDocs, setUserDocs] = useState([]);
 
   const missingSomething = () => {
-    console.log(userList);
     return (
       category === "" ||
       title === "" ||
@@ -204,12 +203,11 @@ export default function AddForm() {
       city === ""
     );
   };
+
   async function handleUpload() {
     if (!missingSomething()) {
-      await setProductID(uuid());
       await console.log(productID);
       await setUploadStatus(true);
-
       try {
         const currentDoc = await addDoc(productCollection, {
           county,
@@ -228,6 +226,7 @@ export default function AddForm() {
 
         await setErr("");
         await alert("Success");
+        await navigate("/profile");
       } catch (err) {
         setErr(err);
       }

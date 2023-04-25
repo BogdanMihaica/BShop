@@ -131,7 +131,20 @@ export default function NavBar() {
       </LogoContaner>
       <ItemContainer>
         {MENU_ITEMS.map(renderRoutes)}
-        {SignOut()}
+        {localStorage.getItem("isLoggedIn") === "true" ? (
+          <Click
+            href=""
+            onClick={() => {
+              auth.signOut();
+              localStorage.setItem("isLoggedIn", "false");
+              navigate("/auth/login");
+            }}
+          >
+            <li>Sign out</li>
+          </Click>
+        ) : (
+          <></>
+        )}
       </ItemContainer>
     </Container>
   );

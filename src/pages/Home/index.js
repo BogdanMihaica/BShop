@@ -5,10 +5,10 @@ import NavBar from "../../common/Layouts/NavBar";
 
 function Home() {
   return (
-    <>
+    <React.StrictMode>
       <NavBar />
       <Find />
-    </>
+    </React.StrictMode>
   );
 }
 

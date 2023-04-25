@@ -1,9 +1,17 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Modal, Upload } from "antd";
-import { ref, uploadBytes } from "firebase/storage";
+import { getDownloadURL, listAll, ref, uploadBytes } from "firebase/storage";
 import { useEffect, useState } from "react";
 import { v4 as uuid } from "uuid";
-import { storage } from "../../../config/firebase";
+import { auth, db, storage } from "../../../config/firebase";
+import {
+  arrayUnion,
+  collection,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -16,6 +24,8 @@ const UploadProdPhotoModal = ({ uploaded, productID }) => {
   const [previewImage, setPreviewImage] = useState("");
   const [previewTitle, setPreviewTitle] = useState("");
   const [fileList, setFileList] = useState([]);
+  const [downloadUrls, setDownloadUrls] = useState([]);
+  const [userID, setUserID] = useState();
   const handleCancel = () => setPreviewOpen(false);
   const handlePreview = async (file) => {
     if (!file.url && !file.preview) {
@@ -44,6 +54,16 @@ const UploadProdPhotoModal = ({ uploaded, productID }) => {
     </div>
   );
   useEffect(() => {
+    setDownloadUrls([]);
+  }, []);
+  useEffect(() => {
+    const getUserID = async () => {
+      await auth.onAuthStateChanged((user) => setUserID(user.uid));
+      await console.log(userID);
+    };
+    getUserID();
+  }, [userID]);
+  useEffect(() => {
     //SIGNAL RECEIVED FROM FORM
     if (uploaded === true) {
       let advance = true;
@@ -51,25 +71,67 @@ const UploadProdPhotoModal = ({ uploaded, productID }) => {
       fileList.forEach((image) => {
         if (
           !(
-            image.originFileObj.type == "image/png" ||
-            image.originFileObj.type == "image/jpg" ||
-            image.originFileObj.type == "image/jpeg"
+            image.originFileObj.type === "image/png" ||
+            image.originFileObj.type === "image/jpg" ||
+            image.originFileObj.type === "image/jpeg"
           )
         )
           advance = false;
       });
       if (advance) {
-        fileList.forEach((image) => {
-          const imageName = image.originFileObj.name + uuid();
-          const imageRef = ref(storage, `images/${productID}/${imageName}`);
-          uploadBytes(imageRef, image.originFileObj, {
-            contentType: `${image.originFileObj.type}`,
-            firebaseStorageDownloadTokens: uuid(),
-          }).then(() => console.log("SUCCESS"));
-        });
+        const uploadImages = async () => {
+          const imageRefInitial = await ref(storage, `images/${productID}/`);
+          fileList.forEach(async (image) => {
+            const imageName = (await image.originFileObj.name) + uuid();
+            const imageRef = ref(storage, `images/${productID}/${imageName}`);
+            await uploadBytes(imageRef, image.originFileObj, {
+              contentType: `${image.originFileObj.type}`,
+              firebaseStorageDownloadTokens: uuid(),
+            }).then(() => {
+              listAll(imageRefInitial).then((response) => {
+                response.items.forEach((item) => {
+                  getDownloadURL(item).then((url) => {
+                    setDownloadUrls((prev) => [...prev, url]);
+                  });
+                });
+              });
+            });
+          });
+        };
+        uploadImages();
       }
     } else console.log("Signal NOT recieved");
   }, [uploaded]);
+  useEffect(() => {
+    if (downloadUrls !== []) {
+      const modifyData = async () => {
+        const userCollection = collection(db, "users");
+        const myQuery = query(userCollection, where("id", "==", userID));
+        const productCollection = collection(db, "products");
+        const prodQuery = query(
+          productCollection,
+          where("productID", "==", productID)
+        );
+        const getAndUpdateUserDoc = async () => {
+          const userDoc = await getDocs(myQuery);
+          await updateDoc(userDoc.docs[0].ref, {
+            userProducts: arrayUnion(productID),
+          });
+        };
+        const getAndUpdateProductDoc = async () => {
+          const productsDoc = await getDocs(prodQuery);
+          console.log(downloadUrls);
+          await updateDoc(productsDoc.docs[0].ref, {
+            images: arrayUnion(...downloadUrls),
+          });
+        };
+        getAndUpdateProductDoc();
+        getAndUpdateUserDoc();
+        console.log(userID);
+      };
+      if (userID) modifyData();
+    }
+  }, [downloadUrls]);
   return (
     <>
       <Upload
