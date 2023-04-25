@@ -174,10 +174,30 @@ const Error = styled.h4`
   margin-left: 2rem;
 `;
 export default function AddForm() {
+  const months = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const today = new Date();
+  const day = today.getDate();
+  const monthIndex = today.getMonth();
+  const monthName = months[monthIndex];
+  const year = today.getFullYear();
   const [uploadStatus, setUploadStatus] = useState(false);
   const [images, setImages] = useState([]);
   const [err, setErr] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState("Home and garden");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -186,13 +206,15 @@ export default function AddForm() {
   const [dwv, setDwv] = useState(false);
   const [county, setCounty] = useState("");
   const [city, setCity] = useState("");
-  const [productID, setProductID] = useState(uuid());
+  const [productID, setProductID] = useState("");
   const navigate = useNavigate();
   const productCollection = collection(db, "products");
   const { currentUserDoc } = useContext(DataContext);
 
   const [userDocs, setUserDocs] = useState([]);
-
+  useEffect(() => {
+    setProductID(uuid());
+  }, []);
   const missingSomething = () => {
     return (
       category === "" ||
@@ -205,11 +227,13 @@ export default function AddForm() {
   };
 
   async function handleUpload() {
+    await setUploadStatus(false);
     if (!missingSomething()) {
-      await console.log(productID);
+      console.log(productID);
       await setUploadStatus(true);
       try {
         const currentDoc = await addDoc(productCollection, {
+          datePublished: `${day}/${monthName}/${year}`,
           county,
           category,
           city,
@@ -226,13 +250,14 @@ export default function AddForm() {
 
         await setErr("");
         await alert("Success");
-        await navigate("/profile");
+        setTimeout(navigate("/profile"), 3000);
       } catch (err) {
         setErr(err);
       }
     } else {
       setErr("All fields (except images) are required! ");
     }
+    setUploadStatus(false);
   }
   const renderOptions = ({ key, title, icon }) => {
     return (

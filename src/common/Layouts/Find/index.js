@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./../../../App.css";
 import styled from "styled-components";
 import Categories from "../../Componets/Categories";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import Blueprint from "../Product/InPage";
+import { DataContext } from "../../../services/dataContext";
 const Container = styled.div`
   min-height: 100vh;
   display: flex;
@@ -63,6 +64,11 @@ const BigContainer = styled.div`
 `;
 export default function Find() {
   let iconSize = "lg";
+  const [input, setInput] = useState("");
+  const { productList } = useContext(DataContext);
+  useEffect(() => {
+    console.log(input);
+  }, [input]);
   return (
     <>
       <BigContainer>
@@ -73,156 +79,14 @@ export default function Find() {
               type="text"
               label="find"
               placeholder="Name something you are looking for."
+              onChange={(e) => {
+                setInput(e.target.value);
+              }}
             />
           </InputContainer>
           <Categories />
         </Container>
-        <FilteredProducts>
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-          <Blueprint
-            photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-            title={"Test"}
-            location={"Location, Test"}
-            publishDate={Date}
-            price={"1000"}
-            currency="EUR"
-          />
-        </FilteredProducts>
+        <FilteredProducts></FilteredProducts>
       </BigContainer>
     </>
   );

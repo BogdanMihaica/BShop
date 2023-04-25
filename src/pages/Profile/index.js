@@ -1,8 +1,13 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
+import React, { useContext, useEffect, useState } from "react";
+import { Navigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import NavBar from "../../common/Layouts/NavBar";
 import Blueprint from "../../common/Layouts/Product/InPage";
+import { DataContext } from "../../services/dataContext";
+import { auth } from "../../config/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCog } from "@fortawesome/free-solid-svg-icons";
 
 const Container = styled.div`
   background: linear-gradient(0deg, rgb(220, 220, 220) 0%, white 100%);
@@ -33,9 +38,10 @@ const ProfilePic = styled.div`
   position: relative;
   width: 170px;
   height: 170px;
-  background: url(https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/default-avatar-profile-picture-male-icon.png);
+  background: url(${(props) => props.avatarURL});
   background-repeat: no-repeat;
-  background-size: contain;
+  background-size: cover;
+  background-position: center;
   background-color: black;
   border-radius: 1000px;
   border: 10px solid white;
@@ -93,27 +99,90 @@ const TextArea = styled.div`
 
   margin-left: 2rem;
 `;
+const ChangeAvatar = styled.input`
+  padding: 0;
+  margin: 0;
+  width: auto;
+  background: transparent;
+  height: auto;
+`;
 const ProductsContainer = styled.div`
   display: flex;
   wwidth: 100%;
   flex-wrap: wrap;
 `;
+
 export default function Profile() {
-  const colors = [
-    "rgba(251, 228, 45, 1)",
-    "rgba(222, 83, 85, 1)",
-    " rgba(37, 102, 190, 1)",
-  ];
+  const { userID } = useParams();
+  const [productsByUser, setProductsByUser] = useState([]);
+  const { userList, productList } = useContext(DataContext);
+  const [fetchedData, setFetchedData] = useState({});
+  const [admin, setAdmin] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(
+    "https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/default-avatar-profile-picture-male-icon.png"
+  );
+  useEffect(() => {}, []);
+  useEffect(() => {
+    const FetchDataForId = async (id) => {
+      if (!id) {
+        id = auth.currentUser?.uid;
+        setAdmin(true);
+      }
+      await userList.forEach((item) => {
+        if (item.id === id) {
+          setFetchedData(item);
+          return;
+        }
+      });
+
+      if (userID) {
+        const filteredProds = productList.filter(
+          (item) => item.userID === userID
+        );
+        console.log(filteredProds);
+        setProductsByUser(filteredProds);
+      } else {
+        const filteredProds = productList.filter(
+          (item) => item.userID === auth.currentUser.uid
+        );
+        console.log(filteredProds);
+        setProductsByUser(filteredProds);
+      }
+    };
+    FetchDataForId(userID);
+  }, [fetchedData, userID, userList]);
+  useEffect(() => {
+    setAvatarUrl(fetchedData?.avatarUrl);
+  }, [fetchedData]);
   const logged = localStorage.getItem("isLoggedIn");
   if (logged !== "true") {
     return <Navigate to="/auth/login" />;
   }
+  const ReturnBlueprints = () => {
+    return productsByUser.map((item) => {
+      return (
+        <Blueprint
+          photoURL={
+            item.images[0]
+              ? item.images[0]
+              : "https://jdih.palembang.go.id/assets/img/no-image.png"
+          }
+          title={item.title}
+          location={`${item.city}, ${item.county}`}
+          publishDate={item.datePublished ? item.datePublished : "-"}
+          price={item.price}
+          currency={item.currency}
+        />
+      );
+    });
+  };
   return (
     <Container>
       <Cover></Cover>
       <NavBar />
-      <ProfilePic></ProfilePic>
-      <Username>User Name</Username>
+      <ProfilePic avatarURL={avatarUrl}></ProfilePic>
+      <Username>{fetchedData?.username}</Username>
+      {admin ? <ChangeAvatar type="file" /> : <></>}
       <Information>
         {/* <TextBlock style={{ borderColor: colors[0] }}>
           <Legend>Seller Details</Legend>
@@ -123,65 +192,18 @@ export default function Profile() {
           <Legend>About</Legend>
           <TextArea>
             <Text>Description:</Text>
-            <BlockText>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-              eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
-              enim ad minim veniam, quis nostrud exercitation ullamco laboris
-              nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
-              reprehenderit in voluptate velit esse cillum dolore eu fugiat
-              nulla pariatur. Excepteur sint occaecat cupidatat non proident,
-              sunt in culpa qui officia deserunt mollit anim id est laborum.
-            </BlockText>
+            <BlockText>{fetchedData?.description}</BlockText>
           </TextArea>
           <TextArea>
             <Text>Phone number:</Text>
 
-            <BlockText>07xxxxxxxx</BlockText>
+            <BlockText>{fetchedData?.phone}</BlockText>
           </TextArea>
         </TextBlock>
         <TextBlock>
           <Legend>Published Products</Legend>
           <ProductsContainer>
-            <Blueprint
-              photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-              title={"Test"}
-              location={"Location, Test"}
-              publishDate={Date}
-              price={"1000"}
-              currency="EUR"
-            />
-            <Blueprint
-              photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-              title={"Test"}
-              location={"Location, Test"}
-              publishDate={Date}
-              price={"1000"}
-              currency="EUR"
-            />
-            <Blueprint
-              photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-              title={"Test"}
-              location={"Location, Test"}
-              publishDate={Date}
-              price={"1000"}
-              currency="EUR"
-            />
-            <Blueprint
-              photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-              title={"Test"}
-              location={"Location, Test"}
-              publishDate={Date}
-              price={"1000"}
-              currency="EUR"
-            />
-            <Blueprint
-              photoURL={"https://jdih.palembang.go.id/assets/img/no-image.png"}
-              title={"Test"}
-              location={"Location, Test"}
-              publishDate={Date}
-              price={"1000"}
-              currency="EUR"
-            />
+            <ReturnBlueprints />
           </ProductsContainer>
         </TextBlock>
       </Information>

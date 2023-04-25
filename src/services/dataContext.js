@@ -30,18 +30,22 @@ export default function DataContextProvider({ children }) {
   useEffect(() => {
     const userCollection = collection(db, "users");
     getDocs(userCollection).then((querrySnapshot) => {
+      const tempUserList = [];
       querrySnapshot.forEach((doc) => {
-        setUserList((oldList) => [...oldList, doc.data()]);
+        tempUserList.push(doc.data());
       });
+      setUserList(tempUserList);
     });
   }, []);
 
   useEffect(() => {
     const userCollection = collection(db, "products");
     getDocs(userCollection).then((querrySnapshot) => {
+      const tempProductList = [];
       querrySnapshot.forEach((doc) => {
-        setProductList((oldList) => [...oldList, doc.data()]);
+        tempProductList.push(doc.data());
       });
+      setProductList(tempProductList);
     });
   }, []);
 
@@ -58,9 +62,7 @@ export default function DataContextProvider({ children }) {
     // });
   }, []);
   return (
-    <DataContext.Provider
-      value={{ userList: userList, currentUserDoc: currentUserDoc }}
-    >
+    <DataContext.Provider value={{ userList, productList }}>
       {children}
     </DataContext.Provider>
   );

@@ -10,8 +10,10 @@ import {
   getDocs,
   query,
   updateDoc,
+  waitForPendingWrites,
   where,
 } from "firebase/firestore";
+import { wait } from "@testing-library/user-event/dist/utils";
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -81,57 +83,47 @@ const UploadProdPhotoModal = ({ uploaded, productID }) => {
       if (advance) {
         const uploadImages = async () => {
           const imageRefInitial = await ref(storage, `images/${productID}/`);
-          fileList.forEach(async (image) => {
-            const imageName = (await image.originFileObj.name) + uuid();
-            const imageRef = ref(storage, `images/${productID}/${imageName}`);
-            await uploadBytes(imageRef, image.originFileObj, {
-              contentType: `${image.originFileObj.type}`,
-              firebaseStorageDownloadTokens: uuid(),
-            }).then(() => {
-              listAll(imageRefInitial).then((response) => {
-                response.items.forEach((item) => {
-                  getDownloadURL(item).then((url) => {
-                    setDownloadUrls((prev) => [...prev, url]);
-                  });
-                });
+          const urls = await Promise.all(
+            fileList.map(async (image) => {
+              const imageName = (await image.originFileObj.name) + uuid();
+              const imageRef = ref(storage, `images/${productID}/${imageName}`);
+              await uploadBytes(imageRef, image.originFileObj, {
+                contentType: `${image.originFileObj.type}`,
+                firebaseStorageDownloadTokens: uuid(),
               });
-            });
-          });
+              const downloadURL = await getDownloadURL(imageRef);
+              return downloadURL;
+            })
+          );
+          setDownloadUrls(urls);
+          await updateDocs(urls);
         };
         uploadImages();
       }
     } else console.log("Signal NOT recieved");
   }, [uploaded]);
-  useEffect(() => {
-    if (downloadUrls !== []) {
-      const modifyData = async () => {
-        const userCollection = collection(db, "users");
-        const myQuery = query(userCollection, where("id", "==", userID));
-        const productCollection = collection(db, "products");
-        const prodQuery = query(
-          productCollection,
-          where("productID", "==", productID)
-        );
-        const getAndUpdateUserDoc = async () => {
-          const userDoc = await getDocs(myQuery);
-          await updateDoc(userDoc.docs[0].ref, {
-            userProducts: arrayUnion(productID),
-          });
-        };
-        const getAndUpdateProductDoc = async () => {
-          const productsDoc = await getDocs(prodQuery);
-          console.log(downloadUrls);
-          await updateDoc(productsDoc.docs[0].ref, {
-            images: arrayUnion(...downloadUrls),
-          });
-        };
-        getAndUpdateProductDoc();
-        getAndUpdateUserDoc();
-        console.log(userID);
-      };
-      if (userID) modifyData();
+
+  const updateDocs = async (urls) => {
+    if (urls && uploaded) {
+      const userCollection = collection(db, "users");
+      const myQuery = query(userCollection, where("id", "==", userID));
+      const productCollection = collection(db, "products");
+      const prodQuery = query(
+        productCollection,
+        where("productID", "==", productID)
+      );
+      const userDoc = await getDocs(myQuery);
+      await updateDoc(userDoc.docs[0].ref, {
+        userProducts: arrayUnion(productID),
+      });
+      const productsDoc = await getDocs(prodQuery);
+      await updateDoc(productsDoc.docs[0].ref, {
+        images: arrayUnion(...urls),
+      });
+      console.log(urls);
     }
-  }, [downloadUrls]);
+  };
+
   return (
     <>
       <Upload
