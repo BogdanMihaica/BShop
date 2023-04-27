@@ -45,3 +45,20 @@
     transform: rotate(360deg);
   }
 }
+@keyframes Circle-colors {
+  0% {
+    outline: 5px solid rgba(251, 228, 45, 0.5);
+  }
+  25% {
+    outline: 5px solid rgba(222, 83, 85, 0.5);
+  }
+  50% {
+    outline: 5px solid rgba(37, 102, 190, 0.5);
+  }
+  75% {
+    outline: 5px solid rgba(222, 83, 85, 0.5);
+  }
+  100% {
+    outline: 5px solid rgba(251, 228, 45, 0.5);
+  }
+}

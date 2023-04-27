@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 const Container = styled.div`
   width: 300px;
@@ -7,8 +8,8 @@ const Container = styled.div`
   margin-left: 2rem;
   background-color: white;
   border-radius: 20px;
-  box-shadow: 5px 5px 10px 3px rgba(0, 0, 0, 0.2);
-
+  box-shadow: 5px 5px 10px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid lightgray;
   display: flex;
   flex-direction: column;
   cursor: pointer;
@@ -48,9 +49,15 @@ export default function Blueprint({
   publishDate,
   price,
   currency,
+  id,
 }) {
+  const navigate = useNavigate();
   return (
-    <Container>
+    <Container
+      onClick={() => {
+        navigate(`/product/${id}`);
+      }}
+    >
       <ImageContainer
         style={{ backgroundImage: `url(${photoURL})` }}
       ></ImageContainer>

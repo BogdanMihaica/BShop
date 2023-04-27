@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import Blueprint from "../Product/InPage";
 import { DataContext } from "../../../services/dataContext";
+import debounce from "lodash.debounce";
 const Container = styled.div`
   min-height: 100vh;
   display: flex;
@@ -65,10 +66,55 @@ const BigContainer = styled.div`
 export default function Find() {
   let iconSize = "lg";
   const [input, setInput] = useState("");
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const { productList } = useContext(DataContext);
+  const [category, setCategory] = useState("");
+
+  const filterTheProducts = () => {
+    if (input !== "") {
+      const debouncedFilter = debounce(() => {
+        setFilteredProducts(
+          productList.filter((item) => {
+            if (
+              item.title.toLowerCase().includes(input.toLowerCase()) &&
+              item.category === localStorage.getItem("categorySelected")
+            ) {
+              return item;
+            }
+          })
+        );
+      }, 500);
+      debouncedFilter();
+    } else if (input === "") {
+      setFilteredProducts([]);
+    }
+  };
   useEffect(() => {
-    console.log(input);
-  }, [input]);
+    setCategory(localStorage.getItem("categorySelected"));
+  }, [localStorage.getItem("categorySelected")]);
+  useEffect(() => {
+    filterTheProducts();
+  }, [input, localStorage.getItem("categorySelected")]);
+  const PrintFilteredProducts = () => {
+    return filteredProducts.map((item) => {
+      return (
+        <Blueprint
+          photoURL={
+            item.images[0]
+              ? item.images[0]
+              : "https://jdih.palembang.go.id/assets/img/no-image.png"
+          }
+          title={item.title}
+          location={`${item.city || "-"}, ${item.county || "-"}`}
+          publishDate={item.datePublished ? item.datePublished : "-"}
+          price={item.price}
+          currency={item.currency}
+          key={item.productID}
+          id={item.productID}
+        />
+      );
+    });
+  };
   return (
     <>
       <BigContainer>
@@ -86,7 +132,9 @@ export default function Find() {
           </InputContainer>
           <Categories />
         </Container>
-        <FilteredProducts></FilteredProducts>
+        <FilteredProducts>
+          <PrintFilteredProducts />
+        </FilteredProducts>
       </BigContainer>
     </>
   );

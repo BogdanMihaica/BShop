@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Navigate, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 import NavBar from "../../common/Layouts/NavBar";
 import Blueprint from "../../common/Layouts/Product/InPage";
@@ -8,8 +8,9 @@ import { auth } from "../../config/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCog } from "@fortawesome/free-solid-svg-icons";
+import UploadAvatarModal from "../../common/Layouts/Modals/UploadAvatarModal";
 
-const Container = styled.div`
+export const Container = styled.div`
   background: linear-gradient(0deg, rgb(220, 220, 220) 0%, white 100%);
   position: relative;
   overflow-x: hidden;
@@ -100,28 +101,59 @@ const TextArea = styled.div`
   margin-left: 2rem;
 `;
 const ChangeAvatar = styled.input`
-  padding: 0;
-  margin: 0;
-  width: auto;
-  background: transparent;
-  height: auto;
+  display: block;
+  ::-webkit-file-upload-button {
+    width: 0;
+    margin: 0;
+    padding: 0;
+  }
+  ::before {
+    content: "New profile photo";
+    display: inline-block;
+    background: linear-gradient(top, #f9f9f9, #e3e3e3);
+    border: 1px solid #999;
+    border-radius: 3px;
+    padding: 5px 8px;
+
+    outline: none;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    cursor: pointer;
+    text-shadow: 1px 1px #fff;
+    font-weight: 700;
+    font-size: 10pt;
+  }
+`;
+const AdminUploadContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  align-items: center;
 `;
 const ProductsContainer = styled.div`
   display: flex;
   wwidth: 100%;
   flex-wrap: wrap;
 `;
-
+const Upload = styled.button`
+  display: inline;
+  font-weight: 700;
+  font-size: 10pt;
+  padding: 5px 8px;
+  cursor: pointer;
+  margin: 0;
+`;
 export default function Profile() {
   const { userID } = useParams();
   const [productsByUser, setProductsByUser] = useState([]);
   const { userList, productList } = useContext(DataContext);
   const [fetchedData, setFetchedData] = useState({});
   const [admin, setAdmin] = useState(false);
+  const navigate = useNavigate();
   const [avatarUrl, setAvatarUrl] = useState(
     "https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/default-avatar-profile-picture-male-icon.png"
   );
-  useEffect(() => {}, []);
+
   useEffect(() => {
     const FetchDataForId = async (id) => {
       if (!id) {
@@ -143,14 +175,14 @@ export default function Profile() {
         setProductsByUser(filteredProds);
       } else {
         const filteredProds = productList.filter(
-          (item) => item.userID === auth.currentUser.uid
+          (item) => item.userID === auth.currentUser?.uid
         );
         console.log(filteredProds);
         setProductsByUser(filteredProds);
       }
     };
     FetchDataForId(userID);
-  }, [fetchedData, userID, userList]);
+  }, [fetchedData, userID, userList, productList]);
   useEffect(() => {
     setAvatarUrl(fetchedData?.avatarUrl);
   }, [fetchedData]);
@@ -172,9 +204,20 @@ export default function Profile() {
           publishDate={item.datePublished ? item.datePublished : "-"}
           price={item.price}
           currency={item.currency}
+          id={item.productID}
         />
       );
     });
+  };
+
+  const AdminRender = () => {
+    if (admin) {
+      return (
+        <AdminUploadContainer>
+          <UploadAvatarModal />
+        </AdminUploadContainer>
+      );
+    }
   };
   return (
     <Container>
@@ -182,7 +225,7 @@ export default function Profile() {
       <NavBar />
       <ProfilePic avatarURL={avatarUrl}></ProfilePic>
       <Username>{fetchedData?.username}</Username>
-      {admin ? <ChangeAvatar type="file" /> : <></>}
+      <AdminRender />
       <Information>
         {/* <TextBlock style={{ borderColor: colors[0] }}>
           <Legend>Seller Details</Legend>
