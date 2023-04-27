@@ -190,7 +190,7 @@ export default function Categories() {
     );
   }
   useEffect(() => {
-    console.log(category);
+    localStorage.setItem("categorySelected", category);
   }, [category]);
 
   return (
