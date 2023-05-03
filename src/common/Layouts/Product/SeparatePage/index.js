@@ -5,7 +5,10 @@ import styled from "styled-components";
 import { useNavigate, useParams } from "react-router-dom";
 import { DataContext } from "../../../../services/dataContext";
 import {
+  faArrowLeft,
+  faArrowRight,
   faCheckCircle,
+  faLongArrowLeft,
   faTimesCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -45,22 +48,54 @@ const Container = styled.div`
 
 const Image = styled.div`
   position: absolute;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  transition: all 1s ease-out;
   width: 100%;
   height: 100%;
   background-image: url(${(props) => props.images});
   background-size: cover;
 `;
-
+const Control = styled.div`
+  display: flex;
+  transition: all 0.5s ease;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  width: 2rem;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  :hover {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+  margin: 0;
+  padding: 0;
+`;
+const ImageCountBg = styled.div`
+  width: 4rem;
+  height: 2rem;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px 10px 0 0;
+`;
+const ImageCount = styled.p`
+  color: white;
+  margin: 0;
+  padding: 0;
+`;
 const FirstHalf = styled.div`
   width: 48%;
   @media (max-width: 768px) {
     width: 95%;
   }
   margin-bottom: 0;
-  height: 90vh;
+  height: auto;
   padding-top: 2rem;
   padding-bottom: 0;
   background-color: white;
@@ -138,9 +173,10 @@ const DetailContainer = styled.div`
 `;
 const UserDetails = styled.div`
   display: flex;
+  height: 70%;
+
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;
+  justify-content: space-evenly;
   margin-left: 1rem;
 `;
 const PublishedBy = styled.h1`
@@ -162,7 +198,7 @@ const UserAvatar = styled.div`
   background-color: black;
   border-radius: 1000px;
   margin-right: 2rem;
-  animation: Circle-colors 15s infinite;
+  animation: Circle-colors 10s infinite;
   margin-bottom: 0;
   cursor: pointer;
   @media (max-width: 768px) {
@@ -170,7 +206,7 @@ const UserAvatar = styled.div`
     height: 7rem;
   }
 `;
-const Detail = styled.p`
+const Detail = styled.pre`
   margin-top: 5px;
   margin-bottom: 0;
   font-size: 1.2rem;
@@ -194,6 +230,7 @@ const AllDetail = styled.div`
   word-wrap: break-word;
 `;
 export default function ProductPage() {
+  const [imageIndex, setImageIndex] = useState(0);
   const { productID } = useParams();
   const { userList, productList } = useContext(DataContext);
   const navigate = useNavigate();
@@ -226,7 +263,38 @@ export default function ProductPage() {
         <Information>
           <FirstHalf>
             <Container>
-              <Image images={productData?.images[0]}></Image>
+              <Image images={productData?.images[imageIndex]}>
+                <Control
+                  onClick={() => {
+                    if (productData?.images[imageIndex - 1])
+                      setImageIndex(imageIndex - 1);
+                    else setImageIndex(productData?.images.length - 1);
+                  }}
+                >
+                  <FontAwesomeIcon
+                    icon={faArrowLeft}
+                    style={{ color: "white" }}
+                  />
+                </Control>
+                <ImageCountBg>
+                  <ImageCount>{`${imageIndex + 1} / ${
+                    productData?.images.length
+                  }`}</ImageCount>
+                </ImageCountBg>
+                <Control
+                  onClick={() => {
+                    if (productData?.images[imageIndex + 1])
+                      setImageIndex(imageIndex + 1);
+                    else setImageIndex(0);
+                  }}
+                >
+                  {" "}
+                  <FontAwesomeIcon
+                    icon={faArrowRight}
+                    style={{ color: "white" }}
+                  />
+                </Control>
+              </Image>
             </Container>
             <TextContainer>
               <Title>{productData?.title || "-"}</Title>

@@ -29,6 +29,7 @@ const Title = styled.p`
   color: black;
   font-weight: bold;
   margin: 0px;
+  text-align: center;
 `;
 const Detail = styled.p`
   font-size: 1.2rem;

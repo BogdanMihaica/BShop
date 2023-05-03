@@ -250,7 +250,7 @@ export default function AddForm() {
 
         await setErr("");
         await alert("Success");
-        setTimeout(navigate("/profile"), 3000);
+        await navigate("/");
       } catch (err) {
         setErr(err);
       }
