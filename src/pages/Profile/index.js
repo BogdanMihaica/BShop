@@ -29,9 +29,9 @@ const Cover = styled.div`
   top: -200px;
   background: radial-gradient(
     circle,
-    rgba(251, 228, 45, 1) 0%,
-    rgba(222, 83, 85, 1) 41%,
-    rgba(37, 102, 190, 1) 100%
+    rgba(251, 228, 45, 0.8) 0%,
+    rgba(222, 83, 85, 0.8) 41%,
+    rgba(37, 102, 190, 0.8) 100%
   );
 `;
 const ProfilePic = styled.div`
@@ -135,6 +135,7 @@ const ProductsContainer = styled.div`
   wwidth: 100%;
   flex-wrap: wrap;
 `;
+
 const Upload = styled.button`
   display: inline;
   font-weight: 700;
@@ -146,7 +147,7 @@ const Upload = styled.button`
 export default function Profile() {
   const { userID } = useParams();
   const [productsByUser, setProductsByUser] = useState([]);
-  const { userList, productList } = useContext(DataContext);
+  let { userList, productList } = useContext(DataContext);
   const [fetchedData, setFetchedData] = useState({});
   const [admin, setAdmin] = useState(false);
   const navigate = useNavigate();
@@ -183,11 +184,12 @@ export default function Profile() {
     };
     FetchDataForId(userID);
   }, [fetchedData, userID, userList, productList]);
+  useEffect(() => {}, []);
   useEffect(() => {
     setAvatarUrl(fetchedData?.avatarUrl);
   }, [fetchedData]);
   const logged = localStorage.getItem("isLoggedIn");
-  if (logged !== "true") {
+  if (logged !== "true" && !userID) {
     return <Navigate to="/auth/login" />;
   }
   const ReturnBlueprints = () => {
