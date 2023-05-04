@@ -13,6 +13,25 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Container as BackgroundContainer } from "../../../../pages/Profile";
+const PreviewBackground = styled.div`
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  z-index: 9;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+`;
+const PreviewImage = styled.img`
+  height: 98%;
+  z-index: 10;
+  max-width: 10000px;
+
+  cursor: inherit;
+`;
 const Information = styled.div`
   display: flex;
   flex-direction: row;
@@ -23,18 +42,7 @@ const Information = styled.div`
   }
   width: 100%;
 `;
-const ImagesContainer = styled.div`
-  width: 40vw;
-  background-color: black;
-  height: 22.5vw;
-  margin-inline: auto;
-  background-size: cover;
-  background-repeat: no-repeat;
-  border-radius: 20px;
-  box-shadow: 3px 3px 10px 2px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1rem;
-  background: url(${(props) => props.images});
-`;
+
 const Container = styled.div`
   width: 80%;
   margin: 0 auto;
@@ -49,16 +57,26 @@ const Container = styled.div`
 const Image = styled.div`
   position: absolute;
   display: flex;
+
   justify-content: space-between;
   align-items: flex-end;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  transition: all 1s ease-out;
+  // transition: all 1s ease-out;
   width: 100%;
   height: 100%;
   background-image: url(${(props) => props.images});
   background-size: cover;
+`;
+const ClickableImage = styled.div`
+  width: calc(100% - 4rem);
+  height: 100%;
+  position: absolute;
+  cursor: pointer;
+  left: 2rem;
+  background-color: rgba(0, 0, 0, 0);
+  z-index: 9;
 `;
 const Control = styled.div`
   display: flex;
@@ -210,6 +228,7 @@ const Detail = styled.pre`
   margin-top: 5px;
   margin-bottom: 0;
   font-size: 1.2rem;
+  font-family: sans-serif;
 `;
 const DetailTitle = styled.h1`
   font-size: 2.3rem;
@@ -236,7 +255,7 @@ export default function ProductPage() {
   const navigate = useNavigate();
   const [productData, setProductData] = useState();
   const [userData, setUserData] = useState();
-
+  const [preview, setPreview] = useState(false);
   useEffect(() => {
     const FetchDataForProduct = async () => {
       await productList.forEach((item) => {
@@ -255,14 +274,32 @@ export default function ProductPage() {
     };
     FetchDataForProduct();
   }, [productList, userList, productData, productID, userData]);
-
+  const Preview = () => {
+    if (preview === true) {
+      return (
+        <PreviewBackground
+          onClick={() => {
+            setPreview(false);
+          }}
+        >
+          <PreviewImage src={productData?.images[imageIndex]} />
+        </PreviewBackground>
+      );
+    }
+  };
   return (
     <React.StrictMode>
+      <Preview />
       <BackgroundContainer>
         <NavBar />
         <Information>
           <FirstHalf>
             <Container>
+              <ClickableImage
+                onClick={() => {
+                  setPreview(true);
+                }}
+              ></ClickableImage>
               <Image images={productData?.images[imageIndex]}>
                 <Control
                   onClick={() => {
@@ -309,7 +346,7 @@ export default function ProductPage() {
                   ) : (
                     <FontAwesomeIcon icon={faTimesCircle} color="red" />
                   )}{" "}
-                  The price is{productData?.negotiable ? " " : "n't "}{" "}
+                  The price is{productData?.negotiable ? " " : "n't "}
                   negotiable
                 </Detail>
                 <Detail>
