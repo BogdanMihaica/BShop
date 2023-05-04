@@ -7,6 +7,10 @@ const Container = styled.div`
   margin-top: 2rem;
   margin-left: 2rem;
   background-color: white;
+  transition: all 0.5s ease;
+  :hover {
+    background-color: rgb(0, 0, 0, 0.05);
+  }
   border-radius: 20px;
   box-shadow: 5px 5px 10px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid lightgray;
