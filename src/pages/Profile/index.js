@@ -4,11 +4,18 @@ import styled from "styled-components";
 import NavBar from "../../common/Layouts/NavBar";
 import Blueprint from "../../common/Layouts/Product/InPage";
 import { DataContext } from "../../services/dataContext";
-import { auth } from "../../config/firebase";
+import { auth, db } from "../../config/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCog } from "@fortawesome/free-solid-svg-icons";
+import { faCog, faPen, faPhone, faX } from "@fortawesome/free-solid-svg-icons";
 import UploadAvatarModal from "../../common/Layouts/Modals/UploadAvatarModal";
+import {
+  collection,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 
 export const Container = styled.div`
   background: linear-gradient(0deg, rgb(220, 220, 220) 0%, white 100%);
@@ -19,6 +26,68 @@ export const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+`;
+const ButtonStyleContainer = styled.div`
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+`;
+const ChangeDescriptionBg = styled.div`
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  z-index: 9;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+`;
+const ChangeDescriptionButton = styled.button`
+  heeight: 1.8rem;
+  width: 10rem;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 5px;
+  svg,
+  span {
+    transition: all 0.5s ease;
+  }
+  transition: all 0.5s ease;
+  border: 1px solid lightgray;
+  background-color: white;
+  :hover {
+    background-color: white;
+    border: 1px solid rgba(37, 102, 190, 1);
+    svg,
+    span {
+      color: rgba(37, 102, 190, 1);
+    }
+  }
+  text-align: left;
+  margin-left: 2rem;
+`;
+const UploadDescription = styled.button`
+  heeight: 1.8rem;
+  width: 10rem;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  padding: 5px;
+
+  transition: all 0.5s ease;
+  border: 1px solid lightgray;
+  background-color: white;
+  :hover {
+    background-color: white;
+    border: 1px solid rgba(37, 102, 190, 1);
+    color: rgba(37, 102, 190, 1);
+  }
+  margin-top: 1rem;
+  text-align: center;
 `;
 const Cover = styled.div`
   width: 150%;
@@ -130,6 +199,48 @@ const AdminUploadContainer = styled.div`
   gap: 1rem;
   align-items: center;
 `;
+const CloseButton = styled.div`
+  margin: 0;
+  padding: 0;
+  height: 2rem;
+  display: flex;
+  transition: all 0.5s ease;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  :hover {
+    background-color: white;
+    p {
+      color: black;
+    }
+    border: 1px solid black;
+  }
+  background-color: black;
+  p {
+    margin: 0;
+    padding: 0;
+    color: white;
+    transition: all 0.5s ease;
+  }
+`;
+const ChangeTextArea = styled.textarea`
+  resize: none;
+  width: 80%;
+  height: 60%;
+  text-indent: 2rem;
+  padding: 20px;
+  z-index: 10;
+  font-size: 1rem;
+`;
+const DescriptionChangeContainer = styled.div`
+  max-width: 800px;
+  width: 98%;
+  height: 600px;
+
+  text-align: center;
+  background-color: white;
+  border-radius: 20px;
+`;
 const ProductsContainer = styled.div`
   display: flex;
   wwidth: 100%;
@@ -146,11 +257,17 @@ const Upload = styled.button`
 `;
 export default function Profile() {
   const { userID } = useParams();
+  const [description, setDescription] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [change, setChange] = useState(false);
   const [productsByUser, setProductsByUser] = useState([]);
   let { userList, productList } = useContext(DataContext);
   const [fetchedData, setFetchedData] = useState({});
   const [admin, setAdmin] = useState(false);
   const navigate = useNavigate();
+  useEffect(() => {
+    setDescription(fetchedData?.description);
+  }, [fetchedData]);
   const [avatarUrl, setAvatarUrl] = useState(
     "https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/default-avatar-profile-picture-male-icon.png"
   );
@@ -184,7 +301,7 @@ export default function Profile() {
     };
     FetchDataForId(userID);
   }, [fetchedData, userID, userList, productList]);
-  useEffect(() => {}, []);
+
   useEffect(() => {
     setAvatarUrl(fetchedData?.avatarUrl);
   }, [fetchedData]);
@@ -192,6 +309,18 @@ export default function Profile() {
   if (logged !== "true" && !userID) {
     return <Navigate to="/auth/login" />;
   }
+  const handleUploadDescription = async (newDescription) => {
+    const usersCollection = collection(db, "users");
+    const myQuery = query(
+      usersCollection,
+      where("id", "==", auth.currentUser?.uid)
+    );
+    const userDoc = await getDocs(myQuery);
+    await updateDoc(userDoc.docs[0].ref, {
+      description: newDescription,
+    });
+  };
+
   const ReturnBlueprints = () => {
     return productsByUser.map((item) => {
       return (
@@ -211,7 +340,58 @@ export default function Profile() {
       );
     });
   };
-
+  const ChangeDescription = () => {
+    if (change) {
+      async function handleTextareaChange(event) {
+        setNewDescription(event.target.value);
+      }
+      return (
+        <ChangeDescriptionBg>
+          <DescriptionChangeContainer>
+            <CloseButton
+              onClick={() => {
+                setChange(false);
+              }}
+            >
+              <p>Close window</p>
+            </CloseButton>
+            <h1>Here you can change your description</h1>
+            <ChangeTextArea
+              onChange={handleTextareaChange}
+              value={newDescription}
+            >
+              {description}
+            </ChangeTextArea>
+            <UploadDescription
+              onClick={() => {
+                handleUploadDescription(newDescription).then(() => {
+                  window.location.reload(false);
+                });
+              }}
+            >
+              Upload
+            </UploadDescription>
+          </DescriptionChangeContainer>
+        </ChangeDescriptionBg>
+      );
+    }
+  };
+  const AdminChange = () => {
+    if (admin) {
+      return (
+        <ChangeDescriptionButton
+          onClick={() => {
+            setChange(true);
+          }}
+        >
+          <ButtonStyleContainer>
+            <span>Change Description</span>
+            <FontAwesomeIcon icon={faPen} size="xl" />
+          </ButtonStyleContainer>
+        </ChangeDescriptionButton>
+      );
+    }
+  };
   const AdminRender = () => {
     if (admin) {
       return (
@@ -237,13 +417,14 @@ export default function Profile() {
           <Legend>About</Legend>
           <TextArea>
             <Text>Description:</Text>
-            <BlockText>{fetchedData?.description}</BlockText>
+            <BlockText>{description}</BlockText>
           </TextArea>
           <TextArea>
             <Text>Phone number:</Text>
 
             <BlockText>{fetchedData?.phone}</BlockText>
           </TextArea>
+          <AdminChange />
         </TextBlock>
         <TextBlock>
           <Legend>Published Products</Legend>
@@ -252,6 +433,7 @@ export default function Profile() {
           </ProductsContainer>
         </TextBlock>
       </Information>
+      <ChangeDescription />
     </Container>
   );
 }
