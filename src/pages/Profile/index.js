@@ -121,6 +121,7 @@ const Username = styled.h2`
   text-align: center;
   position: relative;
   margin: 0;
+  margin-bottom: 0.5rem;
   font-size: 2rem;
 `;
 const Information = styled.div`
@@ -140,6 +141,7 @@ const TextBlock = styled.div`
   min-height: 80px;
   background: white;
   border: none;
+
   border-radius: 20px;
   box-shadow: 9px 9px 20px 10px rgba(0, 0, 0, 0.1);
   padding-bottom: 2rem;
@@ -152,18 +154,25 @@ const Legend = styled.h2`
 
 const Text = styled.p`
   font-size: 1.2rem;
+  padding: 0;
   margin: 0;
+  margin-bottom: 3px;
   font-weight: bold;
 `;
-const BlockText = styled.p`
+const BlockText = styled.pre`
   margin: 0;
-  font-size: 1.2rem;
+  padding: 0;
+  font-size: 1.3rem;
+  font-wrap: wrap;
+  word-wrap: break-word;
+  font-family: sans-serif;
 `;
 
 const TextArea = styled.div`
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+
+  align-items: center;
   margin-bottom: 1rem;
   gap: 10px;
 
@@ -204,6 +213,7 @@ const CloseButton = styled.div`
   padding: 0;
   height: 2rem;
   display: flex;
+  border: 1px solid black;
   transition: all 0.5s ease;
   align-items: center;
   justify-content: center;
@@ -213,7 +223,6 @@ const CloseButton = styled.div`
     p {
       color: black;
     }
-    border: 1px solid black;
   }
   background-color: black;
   p {
@@ -228,6 +237,7 @@ const ChangeTextArea = styled.textarea`
   width: 80%;
   height: 60%;
   text-indent: 2rem;
+  font-family: sans-serif;
   padding: 20px;
   z-index: 10;
   font-size: 1rem;
@@ -341,10 +351,9 @@ export default function Profile() {
     });
   };
   const ChangeDescription = () => {
+    const [newDescription, setNewDescription] = useState(description);
+
     if (change) {
-      async function handleTextareaChange(event) {
-        setNewDescription(event.target.value);
-      }
       return (
         <ChangeDescriptionBg>
           <DescriptionChangeContainer>
@@ -357,11 +366,9 @@ export default function Profile() {
             </CloseButton>
             <h1>Here you can change your description</h1>
             <ChangeTextArea
-              onChange={handleTextareaChange}
+              onChange={(event) => setNewDescription(event.target.value)}
               value={newDescription}
-            >
-              {description}
-            </ChangeTextArea>
+            />
             <UploadDescription
               onClick={() => {
                 handleUploadDescription(newDescription).then(() => {
@@ -376,6 +383,7 @@ export default function Profile() {
       );
     }
   };
+
   const AdminChange = () => {
     if (admin) {
       return (
@@ -426,6 +434,7 @@ export default function Profile() {
           </TextArea>
           <AdminChange />
         </TextBlock>
+
         <TextBlock>
           <Legend>Published Products</Legend>
           <ProductsContainer>

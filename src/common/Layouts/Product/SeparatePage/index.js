@@ -114,6 +114,7 @@ const FirstHalf = styled.div`
   }
   margin-bottom: 0;
   height: auto;
+  display: inline-block;
   padding-top: 2rem;
   padding-bottom: 0;
   background-color: white;
@@ -240,8 +241,11 @@ const SectionTitle = styled.h2`
 
   margin-bottom: 0;
 `;
-const SectionText = styled.p`
+const SectionText = styled.pre`
   margin-left: 2rem;
+  white-space: pre-wrap;
+  font-size: 1rem;
+  font-family: sans-serif;
   margin-right: 2rem;
 `;
 const AllDetail = styled.div`
@@ -289,7 +293,6 @@ export default function ProductPage() {
   };
   return (
     <React.StrictMode>
-      <Preview />
       <BackgroundContainer>
         <NavBar />
         <Information>
@@ -400,6 +403,7 @@ export default function ProductPage() {
             </Description>
           </SecondHalf>
         </Information>
+        <Preview />
       </BackgroundContainer>
     </React.StrictMode>
   );

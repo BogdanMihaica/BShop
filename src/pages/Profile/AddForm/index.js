@@ -336,9 +336,10 @@ export default function AddForm() {
           <LineContainer>
             <SmallInput
               key="price"
+              type="number"
               placeholder="Enter a price"
               onChange={(e) => {
-                setPrice(e.target.value);
+                setPrice(e.target.value.toString());
               }}
               maxLength="7"
             />
